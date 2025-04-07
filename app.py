@@ -2,6 +2,8 @@ from flask import Flask, render_template, request, redirect, url_for, jsonify
 import os
 import pandas as pd
 from werkzeug.utils import secure_filename
+from flask import send_from_directory
+
 
 app = Flask(__name__)
 app.config['UPLOAD_FOLDER'] = 'uploads'
@@ -127,5 +129,8 @@ def export_data():
 def download_file(filename):
     return send_from_directory(app.config['UPLOAD_FOLDER'], filename, as_attachment=True)
 
+import os
+
 if __name__ == '__main__':
-    app.run(debug=True)
+    port = int(os.environ.get('PORT', 5000))  # fallback to 5000 locally
+    app.run(host='0.0.0.0', port=port, debug=True)
