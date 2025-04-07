@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Excel Visualizer Tool</title>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='styles.css') }}" />
+  </head>
+  <body>
+    <div class="container">
+      <header>
+        <h1>Excel Visualizer Tool</h1>
+      </header>
+
+      <div class="upload-section" id="uploadSection">
+        <h2>Upload Your Excel File</h2>
+        <form id="uploadForm" enctype="multipart/form-data">
+          <div class="file-input-container">
+            <input
+              type="file"
+              id="excelFile"
+              name="excelFile"
+              accept=".xlsx, .xls"
+              required />
+            <label for="excelFile" class="file-label">Choose File</label>
+            <span id="fileNameDisplay">No file chosen</span>
+          </div>
+          <button type="submit" class="btn primary-btn">Upload File</button>
+        </form>
+        <div class="saved-reports" id="savedReportsSection">
+          <h3>Saved Report Templates</h3>
+          <div id="savedReportsList">
+            <!-- Saved reports will be loaded here -->
+          </div>
+        </div>
+      </div>
+
+      <div class="main-interface hidden" id="mainInterface">
+        <div class="sidebar">
+          <h3>Available Fields</h3>
+          <div id="availableFields" class="fields-container">
+            <!-- Fields will be generated here -->
+          </div>
+          <div class="filters-section">
+            <h3>Filters</h3>
+            <div id="filterControls">
+              <div class="filter-group">
+                <label for="topNFilter">Top N:</label>
+                <select id="topNFilter">
+                  <option value="all">All</option>
+                  <option value="5">Top 5</option>
+                  <option value="10">Top 10</option>
+                  <option value="20">Top 20</option>
+                  <option value="50">Top 50</option>
+                </select>
+              </div>
+              <div class="filter-group">
+                <label for="sortOrder">Sort Order:</label>
+                <select id="sortOrder">
+                  <option value="desc">Descending</option>
+                  <option value="asc">Ascending</option>
+                </select>
+              </div>
+              <div id="customFilters">
+                <!-- Custom filters will be added here -->
+              </div>
+              <button id="addFilterBtn" class="btn secondary-btn">
+                Add Custom Filter
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div class="workspace">
+          <div class="visualization-builder">
+            <div class="dropzones">
+              <div class="dropzone" id="columnDropzone">
+                <h4>
+                  Column/Categories
+                  <i
+                    class="fas fa-info-circle"
+                    title="Drag fields here to define categories"></i>
+                </h4>
+                <div class="dropzone-content" id="columnDropzoneContent"></div>
+              </div>
+              <div class="dropzone" id="valueDropzone">
+                <h4>
+                  Values
+                  <i
+                    class="fas fa-info-circle"
+                    title="Drag fields here to measure values"></i>
+                </h4>
+                <div class="dropzone-content" id="valueDropzoneContent"></div>
+              </div>
+            </div>
+            <div class="chart-type-selector">
+              <h4>Chart Type</h4>
+              <select id="chartType">
+                <option value="bar">Bar Chart</option>
+                <option value="line">Line Chart</option>
+                <option value="pie">Pie Chart</option>
+                <option value="table">Data Table</option>
+              </select>
+            </div>
+            <div class="controls">
+              <button id="generateVisualization" class="btn primary-btn">
+                Generate Visualization
+              </button>
+              <button id="saveReport" class="btn secondary-btn">
+                Save Report
+              </button>
+              <button id="exportExcel" class="btn secondary-btn">
+                Export to Excel
+              </button>
+            </div>
+          </div>
+
+          <div class="visualization-output">
+            <div id="chartContainer"></div>
+            <div id="dataTable" class="hidden"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Modals -->
+      <div id="saveReportModal" class="modal hidden">
+        <div class="modal-content">
+          <span class="close">&times;</span>
+          <h2>Save Report Template</h2>
+          <form id="saveReportForm">
+            <div class="form-group">
+              <label for="reportName">Report Name:</label>
+              <input type="text" id="reportName" required />
+            </div>
+            <div class="form-group">
+              <label for="reportDescription">Description (optional):</label>
+              <textarea id="reportDescription"></textarea>
+            </div>
+            <button type="submit" class="btn primary-btn">Save Template</button>
+          </form>
+        </div>
+      </div>
+
+      <div id="customFilterModal" class="modal hidden">
+        <div class="modal-content">
+          <span class="close">&times;</span>
+          <h2>Add Custom Filter</h2>
+          <form id="customFilterForm">
+            <div class="form-group">
+              <label for="filterField">Field:</label>
+              <select id="filterField">
+                <!-- Fields will be added dynamically -->
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="filterOperator">Operator:</label>
+              <select id="filterOperator">
+                <option value="equals">Equals</option>
+                <option value="notEquals">Not Equals</option>
+                <option value="contains">Contains</option>
+                <option value="greaterThan">Greater Than</option>
+                <option value="lessThan">Less Than</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="filterValue">Value:</label>
+              <input type="text" id="filterValue" required />
+            </div>
+            <button type="submit" class="btn primary-btn">Add Filter</button>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.2.1/chart.umd.js"></script>
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+  </body>
+</html>
